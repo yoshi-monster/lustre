@@ -35,8 +35,14 @@ export class LustreReconciler {
     this.#root.appendChild(createElement(vnode, this.#dispatch));
   }
 
-  push(patch) {
-    this.#stack.push({ node: this.#root, patch })
+  push(patch, skipFirstRootNodes = 0) {
+    for (let childPtr = patch.children; childPtr.tail; childPtr = childPtr.tail) {
+      const child = childPtr.head;
+      this.#stack.push({
+        node: this.#root.childNodes[child.index + skipFirstRootNodes],
+        patch: child
+      })
+    }
     reconcile(this.#stack, this.#dispatch);
   }
 }
@@ -48,7 +54,7 @@ function reconcile(stack, dispatch) {
     for (let changePtr = patch.changes; changePtr.tail; changePtr = changePtr.tail) {
       const change = changePtr.head;
 
-      console.log(patch.index, change.constructor.name, change, node)
+      // console.log(patch.index, change.constructor.name, change, node)
 
       switch (change.constructor) {
         case InsertMany:

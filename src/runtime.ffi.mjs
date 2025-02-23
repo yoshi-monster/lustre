@@ -185,7 +185,6 @@ export const make_lustre_client_component = (
       if (effects.all instanceof NonEmpty) {
         this.#tick(effects.all);
       }
-
     }
 
     adoptedCallback() {
@@ -237,14 +236,14 @@ export const make_lustre_client_component = (
 
       this.#reconciler_handlers = handlers;
 
-      this.#reconciler.push(patch);
+      this.#reconciler.push(patch, this.#adoptedStyleNodes.length);
       this.#prev = next;
     }
 
     async #adoptStyleSheets() {
       while (this.#adoptedStyleNodes.length) {
         this.#adoptedStyleNodes.pop().remove();
-        this.shadowRoot.lastChild.remove();
+        this.shadowRoot.firstChild.remove();
       }
 
       this.#adoptedStyleNodes = await adoptStyleSheets(this.shadowRoot);
@@ -303,6 +302,7 @@ async function adoptStyleSheets(shadowRoot) {
       shadowRoot.adoptedStyleSheets.push(sheet);
     } catch {
       try {
+        throw new Error();
         let copiedSheet = copiedStyleSheets.get(sheet);
         if (!copiedSheet) {
           copiedSheet = new CSSStyleSheet();
@@ -316,7 +316,7 @@ async function adoptStyleSheets(shadowRoot) {
       } catch {
         const node = sheet.ownerNode.cloneNode();
 
-        shadowRoot.append(node);
+        shadowRoot.prepend(node);
         pending.push(node);
       }
     }
